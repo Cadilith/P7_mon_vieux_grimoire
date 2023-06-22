@@ -11,6 +11,7 @@ exports.createBook = (req, res, next) => {
     const book = new Book({
         ...bookObject,
         userId: req.auth.userId,
+        ratings: [{ userId: null, grade: 0 }],
         //get image url 
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     });
