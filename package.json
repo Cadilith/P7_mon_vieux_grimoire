@@ -1,0 +1,23 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "backend mon vieux grimoire",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cadilith/P7_mon_vieux_grimoire.git"
+  },
+  "author": "Tiffanie Orsoni",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Cadilith/P7_mon_vieux_grimoire/issues"
+  },
+  "homepage": "https://github.com/Cadilith/P7_mon_vieux_grimoire#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.3.1"
+  }
+}
