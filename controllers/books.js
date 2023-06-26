@@ -89,9 +89,11 @@ exports.getAllBooks = (req, res, next) => {
 //#### get best 3 best rated books ####
 exports.getBestRatings = (req, res, next) => {
     Book.find()
-        //sort books by average rating best to worst    
-        .sort({ averageRating: 'desc' })
-        //only return the first 3 books (best)
-        .then((books) => res.status(200).json(books.splice(0, 3)))
+        //sort by descending order
+        .sort({ averageRating: -1 })
+        //keep the first 3 books (best)
+        .limit(3)
+        //return array of 3 best rated books
+        .then((bestBooks) => res.status(200).json(bestBooks))
         .catch(error => res.status(400).json({ error }));
 }
