@@ -8,7 +8,14 @@ const bookSchema = mongoose.Schema({
     year: { type: Number, required: true },
     genre: { type: String, required: true },
     ratings: [{ userId: String, grade: Number }],
-    averageRating: { type: Number, required: true },
-});
+    averageRating: {
+        type: Number,
+        //getter to round the average rating
+        get: function (v) {
+            return Math.round(v);
+        },
+        required: true
+    },
+}, { toJSON: { getters: true } });
 
 module.exports = mongoose.model('Book', bookSchema);

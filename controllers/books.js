@@ -48,7 +48,7 @@ exports.ratingBook = (req, res, next) => {
         .then((book) => {
             //average rating calculation 
             //no need to go through all array, sum of ratings is average rating * rating length (minus the new rate that is added)
-            book.averageRating = Math.round((book.averageRating * (book.ratings.length - 1) + updatedRating.grade) / book.ratings.length);
+            book.averageRating = (book.averageRating * (book.ratings.length - 1) + updatedRating.grade) / book.ratings.length;
             console.log(book.averageRating);
             return book.save();
         })
