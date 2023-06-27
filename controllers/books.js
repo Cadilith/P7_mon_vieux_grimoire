@@ -5,7 +5,6 @@ const fs = require('fs');
 exports.createBook = (req, res, next) => {
     //form-data to object
     const bookObject = JSON.parse(req.body.book);
-    const grade = bookObject.ratings.grade;
     delete bookObject._id;
     //use userId from token for security purposes
     delete bookObject._userId;
@@ -17,7 +16,7 @@ exports.createBook = (req, res, next) => {
         ratings: [],
         averageRating: 0,
         //get image url 
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        imageUrl: `${req.protocol}://${req.get('host')}/images/opt_${req.file.filename}`
     });
     //save book
     book.save()
@@ -38,7 +37,6 @@ exports.ratingBook = (req, res, next) => {
         userId: req.auth.userId,
         grade: req.body.rating
     };
-    console.log(updatedRating);
 
     //check rating range
     if (updatedRating.grade < 0 || updatedRating.grade > 5) {
@@ -50,7 +48,6 @@ exports.ratingBook = (req, res, next) => {
             //average rating calculation 
             //no need to go through all array, sum of ratings is average rating * rating length (minus the new rate that is added)
             book.averageRating = (book.averageRating * (book.ratings.length - 1) + updatedRating.grade) / book.ratings.length;
-            console.log(book.averageRating);
             return book.save();
         })
         .then((updatedBook) => res.status(201).json(updatedBook))
@@ -60,20 +57,28 @@ exports.ratingBook = (req, res, next) => {
 
 //#### modify a book ####
 exports.modifyBook = (req, res, next) => {
-    const book = new Book({
-        _id: req.params.id,
-        title: req.body.title,
-        author: req.body.author,
-        imageUrl: req.body.imageUrl,
-        year: req.body.year,
-        genre: req.body.genre
-    });
-    Book.updateOne({ _id: req.params.id }, book)
+    //is there a new picture ?
+    const bookObject = req.file ? {
+        //process image if there is one
+        ...JSON.parse(req.body.book),
+        imageUrl: `${req.protocol}://${req.get('host')}/images/opt_${req.file.filename}`
+    } : { ...req.body }; //if not, simply get the data
+    //delete the existing id, to be sure to use the one in the token
+    delete bookObject._userId;
+    Book.findOne({ _id: req.params.id })
         .then((book) => {
+            //check user
             if (book.userId != req.auth.userId) {
                 res.status(403).json({ error });
             } else {
-                res.status(201).json({ message: 'Book updated successfully!' })
+                //if user ok, delete old file
+                const oldFile = book.imageUrl.split('/images')[1];
+                req.file && fs.unlink(`images/${oldFile}`, () => {
+                    //update book corresponding to params id, with the data collected in bookObject
+                    Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id })
+                        .then(() => res.status(200).json({ message: 'book successfully updated' }))
+                        .catch(error => res.status(401).json({ error }));
+                })
             }
         })
         .catch(error => res.status(400).json({ error }));
@@ -89,7 +94,7 @@ exports.deleteBook = (req, res, next) => {
                 res.status(403).json({ error });
             } else {
                 //get file name after path
-                const filename = thing.imageUrl.split('/images/')[1];
+                const filename = book.imageUrl.split('/images/')[1];
                 //unlink from fs package delete the file then execute callback to delete the book in database
                 fs.unlink(`images/${filename}`, () => {
                     Book.deleteOne({ _id: req.params.id })
