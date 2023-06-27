@@ -19,4 +19,6 @@ const bookSchema = mongoose.Schema({
     },
 }, { toJSON: { getters: true } });
 
+bookSchema.plugin(uniqueValidator);
+
 module.exports = mongoose.model('Book', bookSchema);

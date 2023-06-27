@@ -1,4 +1,5 @@
 const Book = require('../models/Book');
+const fs = require('fs');
 
 //#### add new book #####
 exports.createBook = (req, res, next) => {
@@ -52,7 +53,7 @@ exports.ratingBook = (req, res, next) => {
             console.log(book.averageRating);
             return book.save();
         })
-        .then((updatedBook) => res.status(200).json(updatedBook))
+        .then((updatedBook) => res.status(201).json(updatedBook))
         .catch(error => res.status(400).json({ error }));
 }
 
@@ -68,15 +69,36 @@ exports.modifyBook = (req, res, next) => {
         genre: req.body.genre
     });
     Book.updateOne({ _id: req.params.id }, book)
-        .then(() => res.status(201).json({ message: 'Book updated successfully!' }))
+        .then((book) => {
+            if (book.userId != req.auth.userId) {
+                res.status(403).json({ error });
+            } else {
+                res.status(201).json({ message: 'Book updated successfully!' })
+            }
+        })
         .catch(error => res.status(400).json({ error }));
+
 };
 
 //#### delete a book ####
 exports.deleteBook = (req, res, next) => {
-    Book.deleteOne({ _id: req.params.id })
-        .then(() => res.status(200).json({ message: 'Deleted!' }))
-        .catch(error => res.status(400).json({ error }));
+    Book.findOne({ _id: req.params.id })
+        .then((book) => {
+            //check if user is the owner of the book
+            if (book.userId != req.auth.userId) {
+                res.status(403).json({ error });
+            } else {
+                //get file name after path
+                const filename = thing.imageUrl.split('/images/')[1];
+                //unlink from fs package delete the file then execute callback to delete the book in database
+                fs.unlink(`images/${filename}`, () => {
+                    Book.deleteOne({ _id: req.params.id })
+                        .then(() => res.status(200).json({ message: 'Deleted!' }))
+                        .catch(error => res.status(401).json({ error }));
+                })
+            }
+        })
+        .catch(error => res.status(500).json({ error }));
 };
 
 //#### get all books ####
