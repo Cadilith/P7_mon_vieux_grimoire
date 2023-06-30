@@ -69,16 +69,19 @@ exports.modifyBook = (req, res, next) => {
         .then((book) => {
             //check user
             if (book.userId != req.auth.userId) {
-                res.status(403).json({ error });
+                res.status(403).json({ message: '403: unauthorized request' });
             } else {
-                //if user ok, delete old file
-                const oldFile = book.imageUrl.split('/images')[1];
-                req.file && fs.unlink(`images/${oldFile}`, () => {
-                    //update book corresponding to params id, with the data collected in bookObject
-                    Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id })
-                        .then(() => res.status(200).json({ message: 'book successfully updated' }))
-                        .catch(error => res.status(401).json({ error }));
-                })
+                //update book corresponding to params id, with the data collected in bookObject
+                Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id })
+                    .then(() => {
+                        res.status(200).json({ message: 'book successfully updated' });
+                        //delete old file
+                        const oldFile = book.imageUrl.split('/images')[1];
+                        req.file && fs.unlink(`images/${oldFile}`, (err => {
+                            if (err) console.log(err);
+                        }))
+                    })
+                    .catch(error => res.status(401).json({ error }));
             }
         })
         .catch(error => res.status(400).json({ error }));
@@ -91,16 +94,19 @@ exports.deleteBook = (req, res, next) => {
         .then((book) => {
             //check if user is the owner of the book
             if (book.userId != req.auth.userId) {
-                res.status(403).json({ error });
+                res.status(403).json({ message: '403: unauthorized request' });
             } else {
-                //get file name after path
-                const filename = book.imageUrl.split('/images/')[1];
-                //unlink from fs package delete the file then execute callback to delete the book in database
-                fs.unlink(`images/${filename}`, () => {
-                    Book.deleteOne({ _id: req.params.id })
-                        .then(() => res.status(200).json({ message: 'Deleted!' }))
-                        .catch(error => res.status(401).json({ error }));
-                })
+                Book.deleteOne({ _id: req.params.id })
+                    .then(() => {
+                        res.status(200).json({ message: 'Deleted!' });
+                        //get file name after path
+                        const filename = book.imageUrl.split('/images/')[1];
+                        //unlink from fs package delete the file then execute callback to delete the book in database
+                        fs.unlink(`images/${filename}`, (err => {
+                            if (err) console.log(err);
+                        }))
+                    })
+                    .catch(error => res.status(401).json({ error }));
             }
         })
         .catch(error => res.status(500).json({ error }));
