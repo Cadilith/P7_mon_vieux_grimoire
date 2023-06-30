@@ -37,18 +37,24 @@ exports.ratingBook = (req, res, next) => {
         userId: req.auth.userId,
         grade: req.body.rating
     };
-
     //check rating range
     if (updatedRating.grade < 0 || updatedRating.grade > 5) {
         return res.status(400).json({ message: 'rating must be between 0 and 5' });
     }
-    //find book and push new rating in array
-    Book.findOneAndUpdate({ _id: req.params.id }, { $push: { ratings: updatedRating } }, { new: true })
+    //find book
+    Book.findOne({ _id: req.params.id })
         .then((book) => {
-            //average rating calculation 
-            //no need to go through all array, sum of ratings is average rating * rating length (minus the new rate that is added)
-            book.averageRating = (book.averageRating * (book.ratings.length - 1) + updatedRating.grade) / book.ratings.length;
-            return book.save();
+            //check if user already rated the book
+            if (book.ratings.find(r => r.userId === req.auth.userId)) {
+                return res.status(400).json({ message: 'User already voted for this book' });
+            } else {
+                //push new rating in array
+                book.ratings.push(updatedRating);
+                //average rating calculation 
+                //no need to go through all array, sum of ratings is average rating * rating length (minus the new rate that is added)
+                book.averageRating = (book.averageRating * (book.ratings.length - 1) + updatedRating.grade) / book.ratings.length;
+                return book.save();
+            }
         })
         .then((updatedBook) => res.status(201).json(updatedBook))
         .catch(error => res.status(400).json({ error }));
