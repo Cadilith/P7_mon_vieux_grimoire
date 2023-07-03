@@ -31,8 +31,11 @@ mongoose.connect('mongodb+srv://tiffanieorsoni:CgMb2IXKbnH3zjBX@cluster0.r42tbpu
 
 app.use(express.json());
 //helmet and sanitize prevent database injections
-app.use(mongoSanitize());
+app.use(mongoSanitize({
+    replaceWith: '_',
+}));
 app.use(helmet({
+    xDownloadOptions: false,
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: false,
 }));
