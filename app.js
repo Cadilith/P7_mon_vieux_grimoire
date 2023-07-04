@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
 const path = require('path');
+require('dotenv').config();
 
 
 //routes
@@ -21,7 +22,7 @@ app.use((req, res, next) => {
 });
 
 //connect to database mongoDB
-mongoose.connect('mongodb+srv://tiffanieorsoni:CgMb2IXKbnH3zjBX@cluster0.r42tbpu.mongodb.net/?retryWrites=true&w=majority',
+mongoose.connect(`mongodb+srv://tiffanieorsoni:${process.env.DB_PASSWORD}@cluster0.r42tbpu.mongodb.net/?retryWrites=true&w=majority`,
     {
         useNewUrlParser: true,
         useUnifiedTopology: true

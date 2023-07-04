@@ -1,9 +1,24 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 const User = require('../models/user');
 
 exports.signup = (req, res, next) => {
+    const { email, password } = req.body;
+
+    // //check email
+    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    if (emailRegex.test(email) === false) {
+        return res.status(400).json({ message: 'email non valide' });
+    };
+
+    //check password length
+    if (password.length < 5) {
+        return res.status(400).json({ message: 'Le mot de passe doit avoir au minimum 5 caractères' });
+    }
+
+    //hash the password and save new user
     bcrypt.hash(req.body.password, 10)
         .then(hash => {
             const user = new User({
@@ -32,7 +47,7 @@ exports.login = (req, res, next) => {
                                 userId: user._id,
                                 token: jwt.sign(
                                     { userId: user._id },
-                                    'RANDOM_TOKEN_SECRET',
+                                    process.env.SECRET_KEY,
                                     { expiresIn: '24h' },
                                 )
                             });
