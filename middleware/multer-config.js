@@ -28,20 +28,24 @@ const upload = multer({ storage: storage, fileFilter: filter }).single('image');
 
 //optimize module
 const optimize = (req, res, next) => {
-    const filePath = req.file.path;
-    const output = path.join('images', `opt_${req.file.filename}`);
-    sharp(filePath)
-        .resize({ width: null, height: 568, fit: 'inside', background: { r: 255, g: 255, b: 255, alpha: 0 } })
-        .webp({ lossless: true })
-        .toFile(output)
-        .then(() => {
-            //delete older file, keep the resized one
-            fs.unlink(filePath, () => {
-                req.file.path = output;
-                next();
+    if (req.file) {
+        const filePath = req.file.path;
+        const output = path.join('images', `opt_${req.file.filename}`);
+        sharp(filePath)
+            .resize({ width: null, height: 568, fit: 'inside', background: { r: 255, g: 255, b: 255, alpha: 0 } })
+            .webp()
+            .toFile(output)
+            .then(() => {
+                //delete older file, keep the resized one
+                fs.unlink(filePath, () => {
+                    req.file.path = output;
+                    next();
+                })
             })
-        })
-        .catch(err => next(err));
+            .catch(err => next(err));
+    } else {
+        return next();
+    }
 };
 
 

@@ -5,10 +5,6 @@ const fs = require('fs');
 exports.createBook = (req, res, next) => {
     //form-data to object
     const bookObject = JSON.parse(req.body.book);
-    delete bookObject._id;
-    //use userId from token for security purposes
-    delete bookObject._userId;
-    delete bookObject.ratings;
     //create book
     const book = new Book({
         ...bookObject,
@@ -69,8 +65,6 @@ exports.modifyBook = (req, res, next) => {
         ...JSON.parse(req.body.book),
         imageUrl: `${req.protocol}://${req.get('host')}/images/opt_${req.file.filename}`
     } : { ...req.body }; //if not, simply get the data
-    //delete the existing id, to be sure to use the one in the token
-    delete bookObject._userId;
     Book.findOne({ _id: req.params.id })
         .then((book) => {
             //check user
