@@ -10,6 +10,7 @@ require('dotenv').config();
 const booksRoutes = require('./routes/books');
 const userRoutes = require('./routes/user');
 
+//express
 const app = express();
 
 //CORS
@@ -31,6 +32,7 @@ mongoose.connect(`mongodb+srv://tiffanieorsoni:${process.env.DB_PASSWORD}@cluste
     .catch(() => console.log('Connexion à MongoDB échouée !'));
 
 app.use(express.json());
+
 //helmet and sanitize prevent database injections
 app.use(mongoSanitize({
     replaceWith: '_',
@@ -40,6 +42,8 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: false,
 }));
+
+//routes urls
 app.use('/api/books', booksRoutes);
 app.use('/api/auth', userRoutes);
 app.use('/images', express.static(path.join(__dirname, 'images')));
