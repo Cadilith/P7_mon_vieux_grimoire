@@ -9,9 +9,18 @@ require('dotenv').config();
 //routes
 const booksRoutes = require('./routes/books');
 const userRoutes = require('./routes/user');
+const rateLimit = require('express-rate-limit');
 
 //express
 const app = express();
+
+//rate limit prevents brute force attacks on all app
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+})
 
 //CORS
 app.use((req, res, next) => {
@@ -42,6 +51,8 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: false,
 }));
+// Apply the rate limiting middleware to all API calls
+app.use('/api/', limiter);
 
 //routes urls
 app.use('/api/books', booksRoutes);
